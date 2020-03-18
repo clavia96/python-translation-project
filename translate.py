@@ -2,6 +2,11 @@
 
 import sys
 
+def codons(seqs):
+    first_codon = seqs[0:3]
+    other_codon = seqs[3:]
+    return first_codon, other_codon
+
 def translate_sequence(rna_sequence, genetic_code):
     """Translates a sequence of RNA into a sequence of amino acids.
 
@@ -28,7 +33,20 @@ def translate_sequence(rna_sequence, genetic_code):
     str
         A string of the translated amino acids.
     """
-    pass
+    rna_sequence = rna_sequence.upper()
+    protein_string = []
+    while True:
+        if len(rna_sequence) < 3:
+            break
+        first_codon, other_codon = codons(rna_sequence)
+        rna_sequence = other_codon
+        amino_acid = genetic_code[first_codon]
+        if amino_acid == '*':
+            break
+        protein_string.append(amino_acid)
+    translated_sequence = "".join(protein_string)
+    return translated_sequence
+
 
 def get_all_translations(rna_sequence, genetic_code):
     """Get a list of all amino acid sequences encoded by an RNA sequence.
@@ -61,7 +79,22 @@ def get_all_translations(rna_sequence, genetic_code):
         A list of strings; each string is an sequence of amino acids encoded by
         `rna_sequence`.
     """
-    pass
+
+    rna_sequence = rna_sequence.upper()
+    length_of_sequence =len(rna_sequence)
+    stop_codon = length_of_sequence -3
+    if stop_codon < 0:
+        return []
+    peptides = []
+    for characters in range(stop_codon +1):
+        codon = rna_sequence[characters: characters +3]
+        if codon == "AUG":
+            protein_string = translate_sequence(
+                    rna_sequence = rna_sequence[characters:],
+                    genetic_code = genetic_code)
+            if protein_string:
+                peptides.append(protein_string)
+    return peptides
 
 def get_reverse(sequence):
     """Reverse orientation of `sequence`.
@@ -77,7 +110,10 @@ def get_reverse(sequence):
     >>> get_reverse('ATGC')
     'CGTA'
     """
-    pass
+    seqs = list(sequence.upper())
+    rev_seqs = seqs[::-1]
+    reversed = ("".join(rev_seqs))
+    return reversed
 
 def get_complement(sequence):
     """Get the complement of a `sequence` of nucleotides.
@@ -93,7 +129,19 @@ def get_complement(sequence):
     >>> get_reverse('ATGC')
     'TACG'
     """
-    pass
+    complements = {
+            'A': 'T',
+            'C': 'G',
+            'G': 'C',
+            'T': 'A',
+            'A': 'U',
+            'U': 'A',
+            }
+    complements_list = []
+    for element in sequence:
+        complements_list.append(complements[element.upper()])
+    complementary_sequence = "".join(complements_list)
+    return complementary_sequence
 
 def reverse_and_complement(sequence):
     """Get the reversed and complemented form of a `sequence` of nucleotides.
@@ -110,7 +158,10 @@ def reverse_and_complement(sequence):
     >>> reverse_and_complement('ATGC')
     'GCAT'
     """
-    pass
+    seq_reverse = get_reverse(sequence)
+    seq_reverse_complement = get_complement(seq_reverse)
+    return seq_reverse_complement
+
 
 def get_longest_peptide(rna_sequence, genetic_code):
     """Get the longest peptide encoded by an RNA sequence.
@@ -139,7 +190,25 @@ def get_longest_peptide(rna_sequence, genetic_code):
         A string of the longest sequence of amino acids encoded by
         `rna_sequence`.
     """
-    pass
+    peptides = get_all_translations(rna_sequence = rna_sequence,
+            genetic_code = genetic_code)
+    rev_comp_seq =  reverse_and_complement(rna_sequence)
+    rev_comp_peptides = get_all_translations(rna_sequence = rev_comp_seq,
+            genetic_code = genetic_code)
+    peptides += rev_comp_peptides
+    if not peptides:
+        return ""
+    if len(peptides) < 2:
+        return peptides[0]
+    number_of_bases = -1
+    longest_peptide_index = -1
+    for peptide_index, protein_string in enumerate(peptides):
+        if len(protein_string) > number_of_bases:
+            longest_peptide_index = peptide_index
+            number_of_bases = len(protein_string)
+    longest_ORF = peptides[longest_peptide_index]
+    return longest_ORF
+
 
 
 if __name__ == '__main__':
